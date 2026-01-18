@@ -104,3 +104,7 @@ systemctl start wg-quick@wg0
 echo -e "${GREEN}WireGuard server installed and configured!${NC}"
 echo -e "Server Public IP: ${PUBLIC_IP}"
 echo -e "Public Key: ${SERVER_PUB_KEY}"
+echo -e "\n${YELLOW}IMPORTANT CAUTION:${NC}"
+echo -e "If you are running this on a cloud provider (AWS, Google Cloud, Azure, DigitalOcean, etc.),"
+echo -e "you MUST also open UDP port 51820 in your provider's Firewall/Security Group settings."
+echo -e "UFW rules inside the OS are often not enough!"

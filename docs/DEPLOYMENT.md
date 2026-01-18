@@ -51,3 +51,30 @@
 
 - **Desktop/Mobile**: Import the `.conf` file into the WireGuard app.
 - **Linux**: Copy to `/etc/wireguard/wg0.conf` and run `sudo wg-quick up wg0`.
+
+## 4. Troubleshooting
+
+If your client says it is connected but you cannot access the internet or ping the server:
+
+### Automatic Diagnostics
+Run the included troubleshooting script on the server:
+```bash
+sudo ./src/scripts/troubleshoot.sh
+```
+This checks for common issues like:
+- Service status
+- IP Forwarding
+- Firewall rules (UFW)
+- Handshake status
+
+### Common Issues
+
+#### 1. "Handshake" is not completing
+If the client sends data (Tx) but receives nothing (Rx: 0), the server is not receiving the packets.
+- **Check Cloud Firewall**: Ensure UDP port `51820` is open in your cloud provider's console (AWS Security Groups, DigitalOcean Networking, etc.). UFW status is not enough!
+- **Check IP Address**: Verify the `Endpoint` in your client config matches the server's *current* Public IP.
+
+#### 2. Connected but no Internet
+- **Check IP Forwarding**: Run `sysctl net.ipv4.ip_forward`. It must be `1`.
+- **Check NAT Rules**: The server config must have `POSTROUTING` rules. Rerun `setup_server.sh` if unsure.
+- **Check DNS**: Ensure the client config has `DNS = 8.8.8.8` (or another valid DNS).
