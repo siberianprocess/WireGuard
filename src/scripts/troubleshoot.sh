@@ -31,6 +31,13 @@ if systemctl is-active --quiet wg-quick@wg0; then
     echo -e "${GREEN}[PASS] Service wg-quick@wg0 is active${NC}"
 else
     echo -e "${RED}[FAIL] Service wg-quick@wg0 is NOT active${NC}"
+    
+    # Check for Zombie Interface
+    if ip link show wg0 >/dev/null 2>&1; then
+        echo -e "${RED}[CRITICAL] Interface 'wg0' exists but service is stopped!${NC}"
+        echo -e "${YELLOW}This 'zombie' state prevents the service from starting.${NC}"
+        echo -e "Fix: Run 'sudo ./src/scripts/reset_server.sh'"
+    fi
     echo "Try: systemctl status wg-quick@wg0"
 fi
 

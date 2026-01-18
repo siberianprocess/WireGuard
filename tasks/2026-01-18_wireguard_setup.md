@@ -68,3 +68,4 @@ Create a set of bash scripts to automate the installation and configuration of W
 - [x] Documentation updated
 - [x] Code reviewed
 - [x] Fixed IP detection bug (HTML response from ifconfig.me)
+- [x] Implemented troubleshooting script and docs
