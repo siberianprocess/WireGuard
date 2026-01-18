@@ -127,18 +127,34 @@ echo -e "${YELLOW}Note: Standard WireGuard MTU is 1420. If connection is slow, t
 
 # 10. Check Handshakes
 echo -e "\n${YELLOW}--- Checking Recent Handshakes ---${NC}"
-LATEST_HANDSHAKE=$(wg show wg0 latest-handshakes | awk '{print $2}')
-if [ "$LATEST_HANDSHAKE" -eq 0 ]; then
-     echo -e "${RED}[FAIL] No handshake detected!${NC}"
-     echo -e "${YELLOW}Possible causes: UDP 51820 blocked, wrong keys, or wrong public IP.${NC}"
+# Get all handshake timestamps
+HANDSHAKES=$(wg show wg0 latest-handshakes | awk '{print $2}')
+
+if [ -z "$HANDSHAKES" ]; then
+     echo -e "${RED}[FAIL] No peers found!${NC}"
 else
-     CURRENT_TIME=$(date +%s)
-     DIFF=$((CURRENT_TIME - LATEST_HANDSHAKE))
-     if [ "$DIFF" -lt 180 ]; then
-         echo -e "${GREEN}[PASS] Handshake successful ${DIFF} seconds ago.${NC}"
-     else
-         echo -e "${RED}[FAIL] Last handshake was ${DIFF} seconds ago (too long).${NC}"
-     fi
+    FOUND_ACTIVE=0
+    CURRENT_TIME=$(date +%s)
+    
+    # Iterate over each handshake timestamp
+    for HS in $HANDSHAKES; do
+        if [ "$HS" -eq 0 ]; then
+             continue
+        fi
+        
+        DIFF=$((CURRENT_TIME - HS))
+        if [ "$DIFF" -lt 180 ]; then
+            echo -e "${GREEN}[PASS] Peer handshake successful ${DIFF} seconds ago.${NC}"
+            FOUND_ACTIVE=1
+        else
+            echo -e "${YELLOW}[WARN] Peer handshake was ${DIFF} seconds ago (inactive).${NC}"
+        fi
+    done
+    
+    if [ "$FOUND_ACTIVE" -eq 0 ]; then
+         echo -e "${RED}[FAIL] No active handshakes detected with any peer!${NC}"
+         echo -e "${YELLOW}Possible causes: UDP 51820 blocked, IP mismatch (10.0.0.x vs 10.8.0.x), or wrong keys.${NC}"
+    fi
 fi
 
 # 11. Kernel Logs for WireGuard

@@ -64,6 +64,7 @@ cat > /etc/wireguard/wg0.conf <<EOF
 PrivateKey = $SERVER_PRIV_KEY
 Address = 10.8.0.1/24
 ListenPort = 51820
+MTU = 1280
 SaveConfig = true
 PostUp = ufw route allow in on wg0 out on $DEFAULT_IF
 PostUp = iptables -t nat -A POSTROUTING -o $DEFAULT_IF -j MASQUERADE

@@ -72,6 +72,7 @@ cat > "${CLIENT_NAME}.conf" <<EOF
 PrivateKey = $CLIENT_PRIV_KEY
 Address = 10.8.0.$OCTET/24
 DNS = 8.8.8.8
+MTU = 1280
 
 [Peer]
 PublicKey = $SERVER_PUB_KEY

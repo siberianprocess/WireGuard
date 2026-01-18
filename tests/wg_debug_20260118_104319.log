@@ -1,0 +1,86 @@
+[0;33mStarting WireGuard Diagnostic...
+Log file: wg_debug_20260118_104319.log
+Time: Sun Jan 18 10:43:19 UTC 2026\033[0m
+[0;32m[PASS] WireGuard module loaded[0m
+[0;32m[PASS] Service wg-quick@wg0 is active[0m
+[0;32m[PASS] IP Forwarding enabled[0m
+[0;33m[WARN] UFW is inactive (Firewall might be off or managed by iptables)[0m
+
+[0;33m--- Checking Ports ---[0m
+[0;31m[FAIL] Port 51820 is already in use![0m
+UNCONN 0      0                  0.0.0.0:51820      0.0.0.0:*                                                
+UNCONN 0      0                     [::]:51820         [::]:*                                                
+
+[0;33m--- Checking IP Configuration ---[0m
+[0;32m[PASS] IP 10.0.0.1 is assigned to wg0[0m
+[0;32m[PASS] Config file found (/etc/wireguard/wg0.conf)[0m
+
+[0;33m--- Peer Status (wg show) ---[0m
+interface: wg0
+  public key: jVwlXd7om9CUVPUvoLoV78jvUpUTehtK9JYjT+fn0i0=
+  private key: (hidden)
+  listening port: 51820
+
+peer: nMrOnsBbH29xBqrHXb9t3ebm5bG+U+9+f29kdhoL8CY=
+  allowed ips: 10.0.0.2/32
+
+peer: yM+8Yz8oum+xt5SSWyvVIaVT2u7FJYgu0Pq8LGQLiQU=
+  preshared key: (hidden)
+  allowed ips: 10.8.0.2/32
+
+peer: 2SS/kSOGJjQZhjmzROr8abrvS6gpyjmXAJBMXK+kAE0=
+  preshared key: (hidden)
+  allowed ips: 10.8.0.3/32
+
+peer: KqBA6zeR2j+dM3XpKtqm834nvJKsbcLbFwTeOHhWRUc=
+  preshared key: (hidden)
+  allowed ips: 10.8.0.4/32
+
+peer: dUXahpaEMQzDXqCbrc0SqdmBiFcXv3y0Ag2GMF52pX8=
+  preshared key: (hidden)
+  allowed ips: 10.8.0.5/32
+
+[0;33m--- Checking NAT and Routing ---[0m
+[0;32m[PASS] NAT Masquerading rule found[0m
+[0;33mNAT Rule Details (Check packet counts):[0m
+39551 2206K MASQUERADE  all  --  *      !docker0  172.17.0.0/16        0.0.0.0/0           
+  572  131K MASQUERADE  all  --  *      eth0    0.0.0.0/0            0.0.0.0/0           
+
+[0;33m--- Checking MTU Settings ---[0m
+13: wg0: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1420 qdisc noqueue state UNKNOWN mode DEFAULT group default qlen 1000
+[0;33mNote: Standard WireGuard MTU is 1420. If connection is slow, try 1280.[0m
+
+[0;33m--- Checking Recent Handshakes ---[0m
+./src/scripts/troubleshoot.sh: line 131: [: 0
+0
+0
+0
+0: integer expression expected
+./src/scripts/troubleshoot.sh: line 136: 0
+0
+0
+0
+0: syntax error in expression (error token is "0
+0
+0
+0")
+
+[0;33m--- Kernel Log Errors (Last 10) ---[0m
+[    6.864980] wireguard: WireGuard 1.0.0 loaded. See www.wireguard.com for information.
+[    6.864983] wireguard: Copyright (C) 2015-2019 Jason A. Donenfeld <Jason@zx2c4.com>. All Rights Reserved.
+[21555478.902897] wireguard: wg0: Could not create IPv4 socket
+[21555917.678463] wireguard: wg0: Could not create IPv4 socket
+[21556471.757995] wireguard: wg0: Could not create IPv4 socket
+[21557557.504294] wireguard: wg0: Could not create IPv4 socket
+[21557961.300303] wireguard: wg0: Could not create IPv4 socket
+[21558506.428932] wireguard: wg0: Could not create IPv4 socket
+
+[0;33mDiagnostic Complete. Log saved to wg_debug_20260118_104319.log[0m
+[0;33mPlease send this file to the support agent.[0m
+[0;33mNOTE: If everything passes but clients cannot connect:[0m
+1. Check your **Cloud Provider Firewall** (AWS Security Groups, DigitalOcean Firewalls, etc.).
+   - Ensure UDP port 51820 is open Inbound.
+2. Check Client Configuration.
+   - Ensure 'Endpoint' IP matches the server's PUBLIC IP.
+   - Ensure 'AllowedIPs' is set to 0.0.0.0/0 (for full tunnel) or specific subnets.
+3. Check logs: 'dmesg -wT' or 'journalctl -u wg-quick@wg0 -f'
