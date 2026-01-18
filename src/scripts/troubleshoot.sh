@@ -110,7 +110,43 @@ fi
 echo -e "\n${YELLOW}--- Peer Status (wg show) ---${NC}"
 wg show wg0
 
-echo -e "\n${YELLOW}--- Diagnostics Complete ---${NC}"
+# 8. Check NAT and Routing (Detailed)
+echo -e "\n${YELLOW}--- Checking NAT and Routing ---${NC}"
+if iptables -t nat -L POSTROUTING -v -n | grep -q "MASQUERADE"; then
+    echo -e "${GREEN}[PASS] NAT Masquerading rule found${NC}"
+    echo -e "${YELLOW}NAT Rule Details (Check packet counts):${NC}"
+    iptables -t nat -L POSTROUTING -v -n | grep "MASQUERADE"
+else
+    echo -e "${RED}[FAIL] No NAT Masquerading rule found! Clients won't have internet.${NC}"
+fi
+
+# 9. Check MTU
+echo -e "\n${YELLOW}--- Checking MTU Settings ---${NC}"
+ip link show wg0 | grep mtu
+echo -e "${YELLOW}Note: Standard WireGuard MTU is 1420. If connection is slow, try 1280.${NC}"
+
+# 10. Check Handshakes
+echo -e "\n${YELLOW}--- Checking Recent Handshakes ---${NC}"
+LATEST_HANDSHAKE=$(wg show wg0 latest-handshakes | awk '{print $2}')
+if [ "$LATEST_HANDSHAKE" -eq 0 ]; then
+     echo -e "${RED}[FAIL] No handshake detected!${NC}"
+     echo -e "${YELLOW}Possible causes: UDP 51820 blocked, wrong keys, or wrong public IP.${NC}"
+else
+     CURRENT_TIME=$(date +%s)
+     DIFF=$((CURRENT_TIME - LATEST_HANDSHAKE))
+     if [ "$DIFF" -lt 180 ]; then
+         echo -e "${GREEN}[PASS] Handshake successful ${DIFF} seconds ago.${NC}"
+     else
+         echo -e "${RED}[FAIL] Last handshake was ${DIFF} seconds ago (too long).${NC}"
+     fi
+fi
+
+# 11. Kernel Logs for WireGuard
+echo -e "\n${YELLOW}--- Kernel Log Errors (Last 10) ---${NC}"
+dmesg | grep -i wireguard | tail -n 10
+
+echo -e "\n${YELLOW}Diagnostic Complete. Log saved to ${LOG_FILE}${NC}"
+echo -e "${YELLOW}Please send this file to the support agent.${NC}"
 echo -e "${YELLOW}NOTE: If everything passes but clients cannot connect:${NC}"
 echo -e "1. Check your **Cloud Provider Firewall** (AWS Security Groups, DigitalOcean Firewalls, etc.)."
 echo -e "   - Ensure UDP port 51820 is open Inbound."
