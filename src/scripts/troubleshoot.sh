@@ -11,7 +11,13 @@ GREEN='\033[0;32m'
 YELLOW='\033[0;33m'
 NC='\033[0m'
 
-echo -e "${YELLOW}Starting WireGuard Diagnostic...${NC}"
+# Log setup
+LOG_FILE="wg_debug_$(date +%Y%m%d_%H%M%S).log"
+exec > >(tee -i "$LOG_FILE") 2>&1
+
+echo -e "${YELLOW}Starting WireGuard Diagnostic..."
+echo "Log file: $LOG_FILE"
+echo "Time: $(date)${NC}"
 
 # 1. Check Root
 if [ "$EUID" -ne 0 ]; then
@@ -71,6 +77,26 @@ if ss -ulpn | grep -q ":51820 "; then
     ss -ulpn | grep ":51820 "
 else
     echo -e "${GREEN}[PASS] Port 51820 is free${NC}"
+fi
+
+# 5.6 Check IP Address Conflict
+echo -e "\n${YELLOW}--- Checking IP Configuration ---${NC}"
+if [ -f "/etc/wireguard/wg0.conf" ]; then
+    WG_IP=$(grep "Address" /etc/wireguard/wg0.conf | awk '{print $3}' | cut -d/ -f1)
+    if [ ! -z "$WG_IP" ]; then
+        if ip addr | grep -q "inet $WG_IP"; then
+             # It's okay if wg0 has it, but bad if another interface has it and wg0 is down
+             if ! ip addr show wg0 2>/dev/null | grep -q "inet $WG_IP"; then
+                 echo -e "${RED}[FAIL] IP $WG_IP is already in use by another interface!${NC}"
+                 echo -e "${YELLOW}Please change the Address in /etc/wireguard/wg0.conf or re-run setup_server.sh${NC}"
+                 ip addr | grep "inet $WG_IP"
+             else
+                 echo -e "${GREEN}[PASS] IP $WG_IP is assigned to wg0${NC}"
+             fi
+        else
+             echo -e "${GREEN}[PASS] IP $WG_IP is available${NC}"
+        fi
+    fi
 fi
 
 # 6. Check Configuration File

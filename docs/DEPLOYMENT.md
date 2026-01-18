@@ -59,7 +59,7 @@ If your client says it is connected but you cannot access the internet or ping t
 ### Automatic Diagnostics
 Run the included troubleshooting script on the server:
 ```bash
-sudo ./src/scripts/troubleshoot.sh
+f
 ```
 This checks for common issues like:
 - Service status
