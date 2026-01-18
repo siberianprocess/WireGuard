@@ -36,10 +36,23 @@ echo "$SERVER_PUB_KEY" > /etc/wireguard/server_public.key
 chmod 600 /etc/wireguard/server_private.key
 
 # Determine public IP
-PUBLIC_IP=$(curl -s ifconfig.me)
-if [ -z "$PUBLIC_IP" ]; then
+# Try multiple services
+PUBLIC_IP=$(curl -s https://api.ipify.org || curl -s https://ifconfig.me || curl -s https://icanhazip.com)
+
+# Validate IP (basic regex)
+if [[ ! $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    # Fallback to local detection if external fails or returns garbage
     PUBLIC_IP=$(ip addr | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
 fi
+
+# Final validation
+if [[ ! $PUBLIC_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo -e "${RED}Could not detect valid Public IP. Please check your network settings.${NC}"
+    exit 1
+fi
+
+echo "$PUBLIC_IP" > /etc/wireguard/server_public_ip
+echo -e "${GREEN}Detected Public IP: ${PUBLIC_IP}${NC}"
 
 # Detect default interface
 DEFAULT_IF=$(ip route list default | awk '{print $5}')

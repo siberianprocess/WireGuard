@@ -35,15 +35,21 @@ CLIENT_PUB_KEY=$(echo "$CLIENT_PRIV_KEY" | wg pubkey)
 CLIENT_PSK=$(wg genpsk)
 SERVER_PUB_KEY=$(cat /etc/wireguard/server_public.key)
 
-# We need the server's public IP/Endpoint. 
-# We'll try to grep it from the setup script output if possible, or source it.
-# Ideally, we should have stored it. 
-# Let's try to detect it again or check if we stored it in the config comment (we didn't).
-# Let's look for it via curl.
-ENDPOINT_IP=$(curl -s ifconfig.me)
-if [ -z "$ENDPOINT_IP" ]; then
-    # Fallback to local detection if curl fails
-     ENDPOINT_IP=$(ip addr | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+# Determine Server Endpoint IP
+if [ -f /etc/wireguard/server_public_ip ]; then
+    ENDPOINT_IP=$(cat /etc/wireguard/server_public_ip)
+else
+    # Try multiple services if file doesn't exist
+    ENDPOINT_IP=$(curl -s https://api.ipify.org || curl -s https://ifconfig.me || curl -s https://icanhazip.com)
+    
+    if [[ ! $ENDPOINT_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+         ENDPOINT_IP=$(ip addr | grep 'inet ' | grep -v '127.0.0.1' | awk '{print $2}' | cut -d/ -f1 | head -n 1)
+    fi
+fi
+
+if [[ ! $ENDPOINT_IP =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    echo -e "${RED}Could not detect valid Server IP for Endpoint.${NC}"
+    exit 1
 fi
 
 # Find available IP
