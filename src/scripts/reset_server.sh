@@ -30,12 +30,17 @@ else
 fi
 
 echo -e "${YELLOW}Restarting WireGuard service...${NC}"
-systemctl start wg-quick@wg0
+systemctl start wg-quick@wg0 || true
 
 if systemctl is-active --quiet wg-quick@wg0; then
     echo -e "${GREEN}WireGuard reset successfully and is now RUNNING!${NC}"
 else
-    echo -e "${RED}Failed to start WireGuard. Checking logs...${NC}"
-    journalctl -u wg-quick@wg0 -n 10 --no-pager
+    echo -e "${RED}Failed to start WireGuard.${NC}"
+    echo -e "${YELLOW}Last 20 lines of service logs:${NC}"
+    journalctl -u wg-quick@wg0 -n 20 --no-pager
+    
+    echo -e "\n${YELLOW}Checking for 'Address already in use' errors:${NC}"
+    journalctl -u wg-quick@wg0 --no-pager | grep "Address already in use" | tail -n 2
+    
     exit 1
 fi

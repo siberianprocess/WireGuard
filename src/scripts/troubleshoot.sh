@@ -64,6 +64,15 @@ if command -v ufw > /dev/null; then
     fi
 fi
 
+# 5.5 Check Port Usage
+echo -e "\n${YELLOW}--- Checking Ports ---${NC}"
+if ss -ulpn | grep -q ":51820 "; then
+    echo -e "${RED}[FAIL] Port 51820 is already in use!${NC}"
+    ss -ulpn | grep ":51820 "
+else
+    echo -e "${GREEN}[PASS] Port 51820 is free${NC}"
+fi
+
 # 6. Check Configuration File
 if [ -f "/etc/wireguard/wg0.conf" ]; then
     echo -e "${GREEN}[PASS] Config file found (/etc/wireguard/wg0.conf)${NC}"
